@@ -3,7 +3,8 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+# Fix #1: Use npm install instead of npm ci since package-lock.json is missing
+RUN npm install --frozen-lockfile
 
 COPY . .
 
