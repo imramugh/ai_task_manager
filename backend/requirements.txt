@@ -14,3 +14,4 @@ openai==1.6.1
 httpx==0.25.2
 pytest==7.4.3
 pytest-asyncio==0.21.1
+slowapi==0.1.9  # Issue #18: Add rate limiting
