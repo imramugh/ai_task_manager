@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from datetime import datetime, timedelta
 
 from app.database import get_db
 from app.schemas.template import TaskTemplate, TaskTemplateCreate, TaskTemplateUpdate
+from app.schemas.task import Task
 from app.models.template import TaskTemplate as TaskTemplateModel
 from app.models.task import Task as TaskModel
 from app.models.user import User as UserModel
