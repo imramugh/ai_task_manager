@@ -2,101 +2,207 @@
 
 An intelligent task management application with AI-powered assistant for smart task planning and organization.
 
-## Features
+![AI Task Manager](https://img.shields.io/badge/NextJS-14-black?style=flat-square&logo=next.js)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=flat-square&logo=fastapi)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=flat-square&logo=typescript)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python)
 
-- 🤖 AI Assistant for task planning and suggestions
-- ✅ Modern task management with projects, tags, and priorities
-- 🎯 Command palette for quick actions
-- 💬 Natural language task creation
-- 🎨 Beautiful UI with Catalyst UI Kit
+## 🎯 Features
 
-## Tech Stack
+### Core Task Management
+- ✅ **Full CRUD Operations** - Create, read, update, and delete tasks
+- 🎨 **Priority Levels** - Organize tasks by urgency (Low, Medium, High, Urgent)
+- 📅 **Due Dates** - Set deadlines and track time-sensitive tasks
+- 🏷️ **Projects** - Group related tasks into projects with custom colors
+- ✔️ **Task Completion** - Mark tasks as complete with visual feedback
+
+### AI-Powered Features
+- 🤖 **Intelligent Task Generation** - Describe your project and let AI create tasks
+- 💬 **Natural Language Chat** - Chat with AI to plan and organize work
+- 💡 **Smart Suggestions** - Get AI recommendations for task breakdown
+- 🎯 **Context-Aware** - AI understands your project context
+
+### User Experience
+- ⌘ **Command Palette** - Quick actions with Cmd/Ctrl + K
+- 🎨 **Beautiful UI** - Modern, responsive design with Tailwind CSS
+- 🔍 **Real-time Search** - Find tasks and projects instantly
+- 📋 **Filtering** - View all, active, or completed tasks
+- 🔄 **Auto-refresh** - UI updates instantly after actions
+
+### Technical Features
+- 🔐 **JWT Authentication** - Secure user sessions
+- 🔗 **RESTful API** - Well-structured backend endpoints
+- 📦 **PostgreSQL Database** - Reliable data persistence
+- 🐳 **Docker Support** - Easy development setup
+- 🚀 **Production Ready** - Scalable architecture
+
+## 🛠️ Tech Stack
 
 ### Frontend
-- **NextJS 14** (App Router)
-- **TypeScript**
-- **Tailwind CSS** + **Catalyst UI Kit**
-- **cmdk** for command palette
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS (Ready for Catalyst UI Kit)
+- **State Management**: React Hooks + SWR
+- **Command Palette**: cmdk
+- **HTTP Client**: Axios
+- **UI Components**: Headless UI, Heroicons
 
 ### Backend
-- **FastAPI** (Python)
-- **SQLAlchemy** ORM
-- **PostgreSQL** database
-- **OpenAI API** for AI features
+- **Framework**: FastAPI
+- **Language**: Python 3.11
+- **Database**: PostgreSQL + SQLAlchemy
+- **Authentication**: JWT (python-jose)
+- **AI Integration**: OpenAI API
+- **Migrations**: Alembic
 
-## Project Structure
-
-```
-ai_task_manager/
-├── frontend/          # NextJS application
-├── backend/           # FastAPI application
-├── docker-compose.yml # Development environment
-└── README.md
-```
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
-
 - Node.js 18+
 - Python 3.11+
 - PostgreSQL 15+
 - OpenAI API key
 
-### Development Setup
+### 1. Clone the Repository
+```bash
+git clone https://github.com/imramugh/ai_task_manager.git
+cd ai_task_manager
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/imramugh/ai_task_manager.git
-   cd ai_task_manager
-   ```
+### 2. Start PostgreSQL with Docker
+```bash
+docker-compose up -d postgres
+```
 
-2. **Set up the frontend**
-   ```bash
-   cd frontend
-   npm install
-   cp .env.example .env.local
-   # Add your environment variables
-   npm run dev
-   ```
+### 3. Backend Setup
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
 
-3. **Set up the backend**
-   ```bash
-   cd backend
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
-   cp .env.example .env
-   # Add your OpenAI API key and database URL
-   uvicorn main:app --reload
-   ```
+# Configure environment
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
 
-4. **Set up the database**
-   ```bash
-   # Using docker-compose
-   docker-compose up -d postgres
-   
-   # Run migrations
-   cd backend
-   alembic upgrade head
-   ```
+# Run migrations
+alembic upgrade head
 
-## Environment Variables
+# Start the server
+uvicorn main:app --reload
+```
+
+### 4. Frontend Setup
+```bash
+cd ../frontend
+npm install
+
+# Configure environment
+cp .env.example .env.local
+
+# Start development server
+npm run dev
+```
+
+### 5. Access the Application
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+## 📸 Screenshots
+
+### Task Management
+- Clean, intuitive interface for managing tasks
+- Visual priority indicators and due dates
+- One-click task completion
+
+### AI Assistant
+- Natural conversation interface
+- Intelligent task generation from descriptions
+- Context-aware suggestions
+
+### Command Palette
+- Quick access to all features
+- Keyboard-first navigation
+- Instant task creation
+
+## 📖 API Documentation
+
+The backend provides a comprehensive REST API:
+
+### Authentication
+- `POST /api/auth/register` - Create new account
+- `POST /api/auth/login` - Login and receive JWT token
+- `GET /api/auth/me` - Get current user info
+
+### Tasks
+- `GET /api/tasks` - List all tasks (with filters)
+- `POST /api/tasks` - Create new task
+- `PUT /api/tasks/{id}` - Update task
+- `DELETE /api/tasks/{id}` - Delete task
+
+### Projects
+- `GET /api/projects` - List all projects
+- `POST /api/projects` - Create new project
+- `PUT /api/projects/{id}` - Update project
+- `DELETE /api/projects/{id}` - Delete project
+
+### AI Features
+- `POST /api/ai/chat` - Chat with AI assistant
+- `POST /api/ai/generate-tasks` - Generate tasks from description
+
+## 🌱 Environment Variables
+
+### Backend (.env)
+```env
+DATABASE_URL=postgresql://taskuser:taskpass@localhost:5432/ai_task_manager
+OPENAI_API_KEY=your-openai-api-key
+SECRET_KEY=your-secret-key-for-jwt
+ALLOWED_ORIGINS=http://localhost:3000
+```
 
 ### Frontend (.env.local)
-```
+```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXTAUTH_SECRET=your-secret-key
+NEXTAUTH_SECRET=your-nextauth-secret
 NEXTAUTH_URL=http://localhost:3000
 ```
 
-### Backend (.env)
-```
-DATABASE_URL=postgresql://user:password@localhost/ai_task_manager
-OPENAI_API_KEY=your-openai-api-key
-SECRET_KEY=your-secret-key
-```
+## 🛣️ Roadmap
 
-## License
+- [ ] Team collaboration features
+- [ ] Task templates
+- [ ] Recurring tasks
+- [ ] Calendar view
+- [ ] Mobile app
+- [ ] Email notifications
+- [ ] Time tracking
+- [ ] Export functionality
+- [ ] Dark mode
+- [ ] Multi-language support
 
-MIT
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with Next.js and FastAPI
+- UI components from Headless UI
+- Icons from Heroicons
+- Command palette powered by cmdk
+- AI capabilities powered by OpenAI
+
+---
+
+<p align="center">Made with ❤️ by <a href="https://github.com/imramugh">imramugh</a></p>
