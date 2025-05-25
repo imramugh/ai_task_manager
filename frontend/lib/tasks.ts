@@ -1,66 +1,76 @@
-import api from './api';
+import { apiClient } from './api';
+import { Task, PaginatedResponse, SortConfig, TaskSearchParams } from './types';
 
-export interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  completed: boolean;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  due_date?: string;
-  project_id?: number;
-  parent_task_id?: number;
-  ai_generated: boolean;
-  user_id: number;
-  created_at: string;
-  updated_at?: string;
-  completed_at?: string;
-}
-
-export interface TaskCreate {
-  title: string;
-  description?: string;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  due_date?: string;
-  project_id?: number;
-  parent_task_id?: number;
-}
-
-export interface TaskUpdate {
-  title?: string;
-  description?: string;
-  completed?: boolean;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
-  due_date?: string;
-  project_id?: number;
-}
-
-export const tasks = {
-  async getAll(params?: {
-    skip?: number;
-    limit?: number;
+// Issue #19: Update to use pagination
+export async function getTasks(
+  page: number = 1,
+  perPage: number = 20,
+  sortConfig?: SortConfig,
+  filters?: {
     completed?: boolean;
     project_id?: number;
-  }): Promise<Task[]> {
-    const response = await api.get('/api/tasks', { params });
-    return response.data;
-  },
+  }
+): Promise<PaginatedResponse<Task>> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    per_page: perPage.toString(),
+  });
 
-  async get(id: number): Promise<Task> {
-    const response = await api.get(`/api/tasks/${id}`);
-    return response.data;
-  },
+  if (sortConfig) {
+    params.append('sort_by', sortConfig.field);
+    params.append('order', sortConfig.order);
+  }
 
-  async create(task: TaskCreate): Promise<Task> {
-    const response = await api.post('/api/tasks', task);
-    return response.data;
-  },
+  if (filters?.completed !== undefined) {
+    params.append('completed', filters.completed.toString());
+  }
 
-  async update(id: number, task: TaskUpdate): Promise<Task> {
-    const response = await api.put(`/api/tasks/${id}`, task);
-    return response.data;
-  },
+  if (filters?.project_id) {
+    params.append('project_id', filters.project_id.toString());
+  }
 
-  async delete(id: number): Promise<void> {
-    await api.delete(`/api/tasks/${id}`);
-  },
-};
+  const response = await apiClient.get(`/tasks?${params}`);
+  return response.data;
+}
+
+// Issue #20: Add search functionality
+export async function searchTasks(query: string, searchIn: string[] = ['title', 'description']): Promise<Task[]> {
+  const params = new URLSearchParams({
+    q: query,
+  });
+  
+  searchIn.forEach(field => params.append('search_in', field));
+  
+  const response = await apiClient.get(`/tasks/search?${params}`);
+  return response.data;
+}
+
+// Issue #20: Add advanced search
+export async function advancedSearchTasks(params: TaskSearchParams): Promise<Task[]> {
+  const response = await apiClient.post('/tasks/search/advanced', params);
+  return response.data;
+}
+
+export async function createTask(taskData: Partial<Task>): Promise<Task> {
+  const response = await apiClient.post('/tasks', taskData);
+  return response.data;
+}
+
+export async function updateTask(
+  taskId: number,
+  updates: Partial<Task>
+): Promise<Task> {
+  const response = await apiClient.put(`/tasks/${taskId}`, updates);
+  return response.data;
+}
+
+export async function deleteTask(taskId: number): Promise<void> {
+  await apiClient.delete(`/tasks/${taskId}`);
+}
+
+export async function toggleTaskComplete(
+  taskId: number,
+  completed: boolean
+): Promise<Task> {
+  return updateTask(taskId, { completed });
+}
