@@ -97,7 +97,7 @@ export default function AIChat() {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg flex flex-col h-[calc(100vh-200px)] max-h-[600px]">
+    <div className="bg-white rounded-lg shadow-lg flex flex-col h-[calc(100vh-240px)]">
       {/* Chat Messages */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
         {messages.length === 0 ? (
@@ -121,7 +121,7 @@ export default function AIChat() {
               }`}
             >
               <div
-                className={`max-w-full sm:max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                className={`max-w-[70%] px-4 py-2 rounded-lg ${
                   message.role === 'user'
                     ? 'bg-indigo-600 text-white'
                     : 'bg-gray-100 text-gray-900'
