@@ -7,53 +7,41 @@ import warnings
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_file_encoding="utf-8"
+        env_file_encoding="utf-8",
+        extra="allow"  # Allow extra fields
     )
     
     # Database
     database_url: str = Field(
-        default="postgresql://taskuser:taskpass@localhost:5432/ai_task_manager",
-        validation_alias="DATABASE_URL"
+        default="postgresql://taskuser:taskpass@localhost:5432/ai_task_manager"
     )
     
     # Security
-    secret_key: str = Field(
-        default_factory=lambda: secrets.token_urlsafe(32),
-        validation_alias="SECRET_KEY"
-    )
-    algorithm: str = Field(default="HS256", validation_alias="ALGORITHM")
-    access_token_expire_minutes: int = Field(
-        default=60 * 24 * 30,  # 30 days
-        validation_alias="ACCESS_TOKEN_EXPIRE_MINUTES"
-    )
+    secret_key: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
+    algorithm: str = Field(default="HS256")
+    access_token_expire_minutes: int = Field(default=60 * 24 * 30)  # 30 days
     
     # OpenAI
-    openai_api_key: Optional[str] = Field(default=None, validation_alias="OPENAI_API_KEY")
+    openai_api_key: Optional[str] = Field(default=None)
     
     # CORS
-    allowed_origins: str = Field(
-        default="http://localhost:3000",
-        validation_alias="ALLOWED_ORIGINS"
-    )
+    allowed_origins: str = Field(default="http://localhost:3000")
     
-    # Email settings with explicit uppercase aliases
-    smtp_host: str = Field(default="smtp.gmail.com", validation_alias="SMTP_HOST")
-    smtp_port: int = Field(default=587, validation_alias="SMTP_PORT")
-    smtp_username: Optional[str] = Field(default=None, validation_alias="SMTP_USERNAME")
-    smtp_password: Optional[str] = Field(default=None, validation_alias="SMTP_PASSWORD")
-    smtp_from_email: Optional[str] = Field(default=None, validation_alias="SMTP_FROM_EMAIL")
-    smtp_from_name: str = Field(default="AI Task Manager", validation_alias="SMTP_FROM_NAME")
-    smtp_tls: bool = Field(default=True, validation_alias="SMTP_TLS")
-    smtp_ssl: bool = Field(default=False, validation_alias="SMTP_SSL")
+    # Email settings
+    smtp_host: str = Field(default="smtp.gmail.com")
+    smtp_port: int = Field(default=587)
+    smtp_username: Optional[str] = Field(default=None)
+    smtp_password: Optional[str] = Field(default=None)
+    smtp_from_email: Optional[str] = Field(default=None)
+    smtp_from_name: str = Field(default="AI Task Manager")
+    smtp_tls: bool = Field(default=True)
+    smtp_ssl: bool = Field(default=False)
     
     # Frontend URL
-    frontend_url: str = Field(default="http://localhost:3000", validation_alias="FRONTEND_URL")
+    frontend_url: str = Field(default="http://localhost:3000")
     
     # Password reset token expiry
-    password_reset_token_expire_hours: int = Field(
-        default=24,
-        validation_alias="PASSWORD_RESET_TOKEN_EXPIRE_HOURS"
-    )
+    password_reset_token_expire_hours: int = Field(default=24)
     
     @field_validator('secret_key')
     def validate_secret_key(cls, v):
@@ -77,3 +65,8 @@ class Settings(BaseSettings):
 
 # Create settings instance
 settings = Settings()
+
+# Debug: print what we got
+print(f"Settings loaded successfully!")
+print(f"SMTP Host: {settings.smtp_host}")
+print(f"SMTP Username: {settings.smtp_username}")
