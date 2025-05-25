@@ -30,7 +30,7 @@ async def chat_with_assistant(
         )
     
     try:
-        # Create the system prompt
+        # Create the system prompt with task context if available
         system_prompt = """
         You are an AI task management assistant. Your role is to help users plan tasks, 
         break down projects, and organize their work efficiently. When users describe 
@@ -44,6 +44,25 @@ async def chat_with_assistant(
         Always be helpful, concise, and focused on actionable task management.
         Remember the context of the conversation to provide relevant responses.
         """
+        
+        # Add task context to the system prompt if provided
+        if message.context and 'existing_tasks' in message.context:
+            tasks = message.context['existing_tasks']
+            if tasks:
+                system_prompt += f"\n\nThe user has {len(tasks)} existing tasks in this project:"
+                for task in tasks[:10]:  # Show first 10 tasks to avoid token limit
+                    system_prompt += f"\n- {task['title']}"
+                    if task.get('description'):
+                        system_prompt += f" ({task['description']})"
+                    if task.get('priority'):
+                        system_prompt += f" [Priority: {task['priority']}]"
+                    if task.get('due_date'):
+                        system_prompt += f" [Due: {task['due_date']}]"
+                    if task.get('completed'):
+                        system_prompt += " ✓"
+                if len(tasks) > 10:
+                    system_prompt += f"\n... and {len(tasks) - 10} more tasks"
+                system_prompt += "\n\nConsider these existing tasks when providing suggestions or updates."
         
         # Build messages array with conversation history
         messages = [{"role": "system", "content": system_prompt}]
@@ -93,8 +112,10 @@ async def generate_tasks(
     try:
         # Extract project_id from context if provided
         project_id = None
+        existing_tasks = []
         if message.context and isinstance(message.context, dict):
             project_id = message.context.get('project_id')
+            existing_tasks = message.context.get('existing_tasks', [])
         
         # Create a function calling prompt
         functions = [
@@ -126,9 +147,18 @@ async def generate_tasks(
             }
         ]
         
+        # Build system message with existing task context
+        system_content = "You are a task planning assistant. Generate structured tasks based on user requirements and conversation context."
+        if existing_tasks:
+            system_content += f"\n\nThe project already has {len(existing_tasks)} existing tasks. Avoid duplicating these tasks:"
+            for task in existing_tasks[:10]:
+                system_content += f"\n- {task.get('title', 'Untitled')}"
+            if len(existing_tasks) > 10:
+                system_content += f"\n... and {len(existing_tasks) - 10} more tasks"
+        
         # Build messages with conversation history for better context
         messages = [
-            {"role": "system", "content": "You are a task planning assistant. Generate structured tasks based on user requirements and conversation context."}
+            {"role": "system", "content": system_content}
         ]
         
         # Add conversation history if provided
