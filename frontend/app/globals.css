@@ -12,13 +12,12 @@
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
   }
-}
 
-@layer base {
   * {
-    @apply border-border;
+    @apply border-gray-200;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-gray-900;
   }
 }
