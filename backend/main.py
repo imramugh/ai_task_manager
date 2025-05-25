@@ -9,9 +9,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
 # Issue #18: Import rate limiting
-from slowapi import Limiter
+from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from app.api import tasks, auth, ai_assistant, projects, tags, templates  # Issue #23: Add templates
