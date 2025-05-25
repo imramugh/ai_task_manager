@@ -20,21 +20,21 @@ class Settings(BaseSettings):
     # CORS
     allowed_origins: str = "http://localhost:3000"
     
-    # Email settings for password reset - uppercase env var names
-    SMTP_HOST: str = Field(default="smtp.gmail.com", alias="smtp_host")
-    SMTP_PORT: int = Field(default=587, alias="smtp_port")
-    SMTP_USERNAME: Optional[str] = Field(default=None, alias="smtp_username")
-    SMTP_PASSWORD: Optional[str] = Field(default=None, alias="smtp_password")
-    SMTP_FROM_EMAIL: Optional[str] = Field(default=None, alias="smtp_from_email")
-    SMTP_FROM_NAME: str = Field(default="AI Task Manager", alias="smtp_from_name")
-    SMTP_TLS: bool = Field(default=True, alias="smtp_tls")
-    SMTP_SSL: bool = Field(default=False, alias="smtp_ssl")
+    # Email settings for password reset
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_from_email: Optional[str] = None
+    smtp_from_name: str = "AI Task Manager"
+    smtp_tls: bool = True
+    smtp_ssl: bool = False
     
     # Frontend URL for password reset links
-    FRONTEND_URL: str = Field(default="http://localhost:3000", alias="frontend_url")
+    frontend_url: str = "http://localhost:3000"
     
     # Password reset token expiry (in hours)
-    PASSWORD_RESET_TOKEN_EXPIRE_HOURS: int = Field(default=24, alias="password_reset_token_expire_hours")
+    password_reset_token_expire_hours: int = 24
     
     # Fix #2: Add validation for secure secret key
     @field_validator('secret_key')
@@ -52,7 +52,7 @@ class Settings(BaseSettings):
             warnings.warn("OPENAI_API_KEY not set - AI features will be disabled")
         return v
     
-    @field_validator('SMTP_USERNAME')
+    @field_validator('smtp_username')
     def validate_smtp_settings(cls, v):
         if not v:
             warnings.warn("SMTP settings not configured - password reset emails will be disabled")
@@ -60,19 +60,7 @@ class Settings(BaseSettings):
     
     class Config:
         env_file = ".env"
-        extra = "allow"  # Allow extra fields temporarily
-        populate_by_name = True  # Allow population by field name
+        case_sensitive = False  # This makes the env vars case-insensitive
+        extra = "ignore"  # Ignore extra fields
 
-# Create settings instance with properties for backwards compatibility
-class SettingsProxy:
-    def __init__(self):
-        self._settings = Settings()
-    
-    def __getattr__(self, name):
-        # Map lowercase names to uppercase for new fields
-        if name.startswith('smtp_') or name == 'frontend_url' or name == 'password_reset_token_expire_hours':
-            upper_name = name.upper()
-            return getattr(self._settings, upper_name)
-        return getattr(self._settings, name)
-
-settings = SettingsProxy()
+settings = Settings()
