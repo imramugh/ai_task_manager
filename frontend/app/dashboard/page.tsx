@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import TaskList from '@/components/tasks/TaskList';
 import TaskGrid from '@/components/tasks/TaskGrid';
@@ -11,15 +12,27 @@ import toast from 'react-hot-toast';
 import { ViewColumnsIcon, ListBulletIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
+  const projectIdFromUrl = searchParams.get('project');
+  
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+    projectIdFromUrl ? parseInt(projectIdFromUrl) : null
+  );
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'calendar'>('list');
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    // Update selected project if URL parameter changes
+    if (projectIdFromUrl) {
+      setSelectedProjectId(parseInt(projectIdFromUrl));
+    }
+  }, [projectIdFromUrl]);
 
   const loadData = async () => {
     try {
