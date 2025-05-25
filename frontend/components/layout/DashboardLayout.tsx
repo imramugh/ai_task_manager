@@ -22,12 +22,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (!auth.isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-    
-    loadUser();
+    checkAuth();
 
     // Set up keyboard shortcut for command palette
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,17 +34,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [router]);
+  }, []);
 
-  const loadUser = async () => {
+  const checkAuth = async () => {
+    // First check if we have a token
+    if (!auth.isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+
+    // Then verify the token is still valid
     try {
       const userData = await auth.getMe();
       setUser(userData);
-    } catch (error) {
-      console.error('Failed to load user:', error);
-      router.push('/login');
-    } finally {
       setLoading(false);
+    } catch (error) {
+      // Token is invalid, redirect to login
+      console.error('Auth check failed:', error);
+      router.push('/login');
     }
   };
 

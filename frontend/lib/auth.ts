@@ -33,6 +33,8 @@ export const auth = {
     
     if (response.data.access_token) {
       localStorage.setItem('token', response.data.access_token);
+      // Also store login timestamp to help with token expiry
+      localStorage.setItem('token_timestamp', Date.now().toString());
     }
     
     return response.data;
@@ -50,10 +52,39 @@ export const auth = {
 
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('token_timestamp');
     window.location.href = '/login';
   },
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    const timestamp = localStorage.getItem('token_timestamp');
+    
+    if (!token) return false;
+    
+    // Check if token is older than 30 days (optional)
+    if (timestamp) {
+      const tokenAge = Date.now() - parseInt(timestamp);
+      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
+      if (tokenAge > thirtyDays) {
+        this.logout();
+        return false;
+      }
+    }
+    
+    return true;
+  },
+
+  async verifyToken(): Promise<boolean> {
+    if (!this.isAuthenticated()) return false;
+    
+    try {
+      await this.getMe();
+      return true;
+    } catch (error) {
+      // Token is invalid or expired
+      this.logout();
+      return false;
+    }
   },
 };
