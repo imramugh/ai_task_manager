@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ai, ConversationMessage } from '@/lib/ai';
 import { projects as projectApi, Project } from '@/lib/projects';
+import { tasks as tasksApi, Task } from '@/lib/tasks';
 import { PaperAirplaneIcon, FolderIcon, SparklesIcon, PlusIcon } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
 
@@ -25,7 +26,9 @@ export default function AIChat() {
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [projectTasks, setProjectTasks] = useState<Task[]>([]);
   const [showProjectMenu, setShowProjectMenu] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const [newProjectModal, setNewProjectModal] = useState<NewProjectModal>({
     isOpen: false,
     name: '',
@@ -46,6 +49,15 @@ export default function AIChat() {
   useEffect(() => {
     loadProjects();
   }, []);
+
+  // Load tasks when project is selected
+  useEffect(() => {
+    if (selectedProjectId) {
+      loadProjectTasks(selectedProjectId);
+    } else {
+      setProjectTasks([]);
+    }
+  }, [selectedProjectId]);
 
   useEffect(() => {
     // Auto-resize textarea
@@ -73,6 +85,26 @@ export default function AIChat() {
       setProjects(data);
     } catch (error) {
       console.error('Failed to load projects');
+    }
+  };
+
+  const loadProjectTasks = async (projectId: number) => {
+    try {
+      const tasks = await tasksApi.getAll({ project_id: projectId });
+      setProjectTasks(tasks);
+      
+      // Add a system message about loaded tasks
+      if (tasks.length > 0) {
+        const systemMessage: Message = {
+          id: `system-${Date.now()}`,
+          role: 'assistant',
+          content: `📋 Loaded ${tasks.length} existing task${tasks.length > 1 ? 's' : ''} from this project. I can help you review, update, or add to these tasks.`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, systemMessage]);
+      }
+    } catch (error) {
+      console.error('Failed to load project tasks');
     }
   };
 
@@ -112,6 +144,7 @@ export default function AIChat() {
     setMessages([...messages, userMessage]);
     setInput('');
     setLoading(true);
+    setIsThinking(true);
 
     try {
       // Build conversation history for context
@@ -126,10 +159,27 @@ export default function AIChat() {
         content: input
       });
 
-      // Send message with conversation history
+      // Create context with project tasks if a project is selected
+      const context: any = {
+        project_id: selectedProjectId
+      };
+      
+      if (projectTasks.length > 0) {
+        context.existing_tasks = projectTasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          due_date: task.due_date,
+          completed: task.completed
+        }));
+      }
+
+      // Send message with conversation history and task context
       const response = await ai.chat({ 
         content: input,
-        conversation_history: conversationHistory
+        conversation_history: conversationHistory,
+        context
       });
       
       const assistantMessage: Message = {
@@ -144,6 +194,7 @@ export default function AIChat() {
       toast.error('Failed to get AI response');
     } finally {
       setLoading(false);
+      setIsThinking(false);
     }
   };
 
@@ -154,6 +205,7 @@ export default function AIChat() {
     }
 
     setLoading(true);
+    setIsThinking(true);
     try {
       // Build conversation history for better context
       const conversationHistory: ConversationMessage[] = messages.map(msg => ({
@@ -161,9 +213,22 @@ export default function AIChat() {
         content: msg.content
       }));
 
+      // Create context with existing tasks
+      const context: any = { project_id: selectedProjectId };
+      if (projectTasks.length > 0) {
+        context.existing_tasks = projectTasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description,
+          priority: task.priority,
+          due_date: task.due_date,
+          completed: task.completed
+        }));
+      }
+
       const response = await ai.generateTasks({ 
         content: prompt,
-        context: { project_id: selectedProjectId },
+        context,
         conversation_history: conversationHistory
       });
       toast.success(response.message);
@@ -176,10 +241,14 @@ export default function AIChat() {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, successMessage]);
+      
+      // Reload project tasks to show the new ones
+      loadProjectTasks(selectedProjectId);
     } catch (error) {
       toast.error('Failed to generate tasks');
     } finally {
       setLoading(false);
+      setIsThinking(false);
     }
   };
 
@@ -209,7 +278,7 @@ export default function AIChat() {
           <p className="text-gray-600">How can I help you organize your tasks today?</p>
         </div>
         
-        <form onSubmit={handleSendMessage} className="w-full">
+        <form onSubmit={handleSendMessage} className="w-full max-w-2xl">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
             <textarea
               ref={textareaRef}
@@ -217,7 +286,7 @@ export default function AIChat() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="How can I help you today?"
-              className="w-full resize-none rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[56px] max-h-[200px]"
+              className="w-full resize-none rounded-lg px-4 py-3 focus:outline-none focus:border-transparent min-h-[56px] max-h-[200px]"
               rows={1}
             />
 
@@ -286,7 +355,7 @@ export default function AIChat() {
               
               <button
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input.trim() || loading}
                 className="p-2 text-indigo-600 hover:text-indigo-700 disabled:text-gray-300 disabled:cursor-not-allowed rounded-md hover:bg-gray-100"
               >
                 <PaperAirplaneIcon className="h-5 w-5" />
@@ -395,11 +464,17 @@ export default function AIChat() {
             </div>
           </div>
         ))}
-        {loading && (
+        {isThinking && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg px-4 py-2">
-              <div className="flex items-center space-x-2">
-                <SparklesIcon className="h-4 w-4 text-orange-500 animate-pulse" />
+            <div className="bg-gray-100 rounded-lg px-4 py-3">
+              <div className="flex items-center space-x-3">
+                <SparklesIcon className="h-5 w-5 text-orange-500 animate-pulse" />
+                <div className="flex space-x-1">
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                </div>
+                <span className="text-sm text-gray-600">Thinking...</span>
               </div>
             </div>
           </div>
@@ -416,7 +491,7 @@ export default function AIChat() {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Reply to assistant..."
-            className="w-full resize-none rounded-lg px-4 py-3 bg-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[48px] max-h-[200px]"
+            className="w-full resize-none rounded-lg px-4 py-3 bg-transparent focus:outline-none focus:border-transparent min-h-[48px] max-h-[200px]"
             disabled={loading}
             rows={1}
           />
@@ -430,6 +505,9 @@ export default function AIChat() {
                   style={{ backgroundColor: selectedProject.color }}
                 />
                 <span className="text-xs">{selectedProject.name}</span>
+                {projectTasks.length > 0 && (
+                  <span className="text-xs text-gray-500 ml-1">({projectTasks.length} tasks)</span>
+                )}
               </div>
             )}
             
