@@ -1,4 +1,5 @@
 import api from './api';
+import Cookies from 'js-cookie';
 
 export interface User {
   id: number;
@@ -19,6 +20,9 @@ export interface RegisterData {
   password: string;
 }
 
+const TOKEN_KEY = 'token';
+const USER_KEY = 'user';
+
 export const auth = {
   async login(credentials: LoginCredentials): Promise<{ access_token: string; token_type: string }> {
     const formData = new FormData();
@@ -32,11 +36,18 @@ export const auth = {
     });
     
     if (response.data.access_token) {
-      localStorage.setItem('token', response.data.access_token);
+      // Store token in both cookie and localStorage for redundancy
+      Cookies.set(TOKEN_KEY, response.data.access_token, { 
+        expires: 7, // 7 days
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production'
+      });
+      localStorage.setItem(TOKEN_KEY, response.data.access_token);
+      
       // Also store user info
       try {
         const userResponse = await api.get('/api/auth/me');
-        localStorage.setItem('user', JSON.stringify(userResponse.data));
+        localStorage.setItem(USER_KEY, JSON.stringify(userResponse.data));
       } catch (error) {
         console.error('Failed to fetch user data after login');
       }
@@ -52,41 +63,44 @@ export const auth = {
 
   async getMe(): Promise<User> {
     // First check if we have cached user data
-    const cachedUser = localStorage.getItem('user');
+    const cachedUser = localStorage.getItem(USER_KEY);
     if (cachedUser) {
       try {
         const user = JSON.parse(cachedUser);
         // Verify the token is still valid by making an API call
         const response = await api.get('/api/auth/me');
         // Update cached user data
-        localStorage.setItem('user', JSON.stringify(response.data));
+        localStorage.setItem(USER_KEY, JSON.stringify(response.data));
         return response.data;
       } catch (error) {
         // Token is invalid, clear storage
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        Cookies.remove(TOKEN_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
         throw error;
       }
     }
     
     // No cached user, fetch from API
     const response = await api.get('/api/auth/me');
-    localStorage.setItem('user', JSON.stringify(response.data));
+    localStorage.setItem(USER_KEY, JSON.stringify(response.data));
     return response.data;
   },
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    Cookies.remove(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     window.location.href = '/login';
   },
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    // Check both cookie and localStorage
+    return !!(Cookies.get(TOKEN_KEY) || localStorage.getItem(TOKEN_KEY));
   },
 
   getCachedUser(): User | null {
-    const cachedUser = localStorage.getItem('user');
+    const cachedUser = localStorage.getItem(USER_KEY);
     if (cachedUser) {
       try {
         return JSON.parse(cachedUser);
