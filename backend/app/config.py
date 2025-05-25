@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, field_validator, ConfigDict
+from pydantic import Field, field_validator
 from typing import Optional
 import secrets
 import warnings
@@ -7,31 +7,21 @@ import warnings
 class Settings(BaseSettings):
     # Database
     database_url: str = Field(
-        default="postgresql://taskuser:taskpass@localhost:5432/ai_task_manager",
-        alias="DATABASE_URL"
+        default="postgresql://taskuser:taskpass@localhost:5432/ai_task_manager"
     )
     
     # Security
-    secret_key: str = Field(
-        default_factory=lambda: secrets.token_urlsafe(32),
-        alias="SECRET_KEY"
-    )
-    algorithm: str = Field(default="HS256", alias="ALGORITHM")
-    access_token_expire_minutes: int = Field(
-        default=60 * 24 * 30,  # 30 days
-        alias="ACCESS_TOKEN_EXPIRE_MINUTES"
-    )
+    secret_key: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
+    algorithm: str = Field(default="HS256")
+    access_token_expire_minutes: int = Field(default=60 * 24 * 30)  # 30 days
     
     # OpenAI
-    openai_api_key: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
+    openai_api_key: Optional[str] = Field(default=None)
     
     # CORS
-    allowed_origins: str = Field(
-        default="http://localhost:3000",
-        alias="ALLOWED_ORIGINS"
-    )
+    allowed_origins: str = Field(default="http://localhost:3000")
     
-    # Email settings - handle both upper and lowercase env vars
+    # Email settings - these will accept lowercase env vars
     smtp_host: str = Field(default="smtp.gmail.com")
     smtp_port: int = Field(default=587)
     smtp_username: Optional[str] = Field(default=None)
@@ -47,12 +37,11 @@ class Settings(BaseSettings):
     # Password reset token expiry
     password_reset_token_expire_hours: int = Field(default=24)
     
-    model_config = ConfigDict(
+    model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
-        populate_by_name=True,
-        extra="allow"  # Temporarily allow to debug
+        extra="allow"  # Allow extra fields to prevent validation errors
     )
     
     @field_validator('secret_key')
