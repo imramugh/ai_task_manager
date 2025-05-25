@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth';
 import { User } from '@/lib/auth';
 import CommandPalette from '../CommandPalette';
 import toast, { Toaster } from 'react-hot-toast';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, ClipboardDocumentCheckIcon } from '@heroicons/react/24/outline';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -82,7 +82,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           <div className="flex h-16 justify-between">
             <div className="flex">
               <div className="flex flex-shrink-0 items-center">
-                <h1 className="text-xl font-bold text-gray-900">AI Task Manager</h1>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Home"
+                >
+                  <ClipboardDocumentCheckIcon className="h-6 w-6 text-indigo-600" />
+                </Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 {navigation.map((item) => (
