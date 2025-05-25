@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 import os
 from dotenv import load_dotenv
 
-from app.api import tasks, auth, ai_assistant
+from app.api import tasks, auth, ai_assistant, projects, tags
 from app.database import engine, Base
 
 # Load environment variables
@@ -42,6 +42,8 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
+app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
+app.include_router(tags.router, prefix="/api/tags", tags=["tags"])
 app.include_router(ai_assistant.router, prefix="/api/ai", tags=["ai"])
 
 @app.get("/")
