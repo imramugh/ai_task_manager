@@ -79,6 +79,11 @@ async def generate_tasks(
         )
     
     try:
+        # Extract project_id from context if provided
+        project_id = None
+        if message.context and isinstance(message.context, dict):
+            project_id = message.context.get('project_id')
+        
         # Create a function calling prompt
         functions = [
             {
@@ -133,7 +138,8 @@ async def generate_tasks(
                 priority=task_data["priority"],
                 ai_generated=True,
                 ai_context=message.content,
-                user_id=current_user.id
+                user_id=current_user.id,
+                project_id=project_id  # Add project_id if provided
             )
             db.add(db_task)
             created_tasks.append(db_task)
