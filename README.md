@@ -1,227 +1,166 @@
 # AI Task Manager
 
-An intelligent task management application with AI-powered assistant for smart task planning and organization.
+An intelligent task management application with AI-powered features, built with FastAPI and Next.js.
 
-![AI Task Manager](https://img.shields.io/badge/NextJS-14-black?style=flat-square&logo=next.js)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688?style=flat-square&logo=fastapi)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6?style=flat-square&logo=typescript)
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python)
+## Features
 
-## 🎯 Features
+- ✅ **Task Management**: Create, update, delete, and organize tasks
+- 🤖 **AI Assistant**: Get AI-powered suggestions and task generation
+- 📁 **Projects**: Organize tasks into projects
+- 🏷️ **Tags**: Categorize tasks with tags
+- 📊 **Dashboard**: Visual overview of your tasks and productivity
+- 🔒 **Authentication**: Secure user authentication with JWT
+- 🔍 **Search**: Full-text search across tasks (Issue #20)
+- 📚 **Pagination**: Efficient loading of large task lists (Issue #19)
+- 🔃 **Sorting**: Sort tasks by various criteria (Issue #22)
+- 📱 **Mobile Responsive**: Optimized for mobile devices (Issue #21)
+- ⏱️ **Rate Limiting**: API protection against abuse (Issue #18)
+- 📝 **Templates**: Save and reuse task templates (Issue #23)
+- ✅ **Validation**: Input validation for data integrity (Issue #17)
 
-### Core Task Management
-- ✅ **Full CRUD Operations** - Create, read, update, and delete tasks
-- 🎨 **Priority Levels** - Organize tasks by urgency (Low, Medium, High, Urgent)
-- 📅 **Due Dates** - Set deadlines and track time-sensitive tasks
-- 🏷️ **Projects** - Group related tasks into projects with custom colors
-- ✔️ **Task Completion** - Mark tasks as complete with visual feedback
-- 📅 **Multiple Views** - List, Grid, and Calendar views
+## Recent Updates (Issues #17-23)
 
-### AI-Powered Features
-- 🤖 **Intelligent Task Generation** - Describe your project and let AI create tasks
-- 💬 **Natural Language Chat** - Chat with AI to plan and organize work
-- 💡 **Smart Suggestions** - Get AI recommendations for task breakdown
-- 🎯 **Context-Aware** - AI understands your project context
-- 📁 **Project Integration** - AI-generated tasks automatically assigned to selected projects
+### Backend Improvements
+- **Input Validation** (Issue #17): Added comprehensive validation for task titles and descriptions
+- **Rate Limiting** (Issue #18): Implemented API rate limiting using SlowAPI to prevent abuse
+- **Pagination** (Issue #19): Added pagination support for task lists with configurable page sizes
+- **Search Functionality** (Issue #20): Added basic and advanced search endpoints for tasks
+- **Sorting** (Issue #22): Tasks can now be sorted by multiple fields with customizable order
+- **Task Templates** (Issue #23): New template system for creating reusable task configurations
 
-### User Experience
-- ⌘ **Command Palette** - Quick actions with Cmd/Ctrl + K
-- 🎨 **Beautiful UI** - Modern, responsive design with Tailwind CSS
-- 🔍 **Real-time Search** - Find tasks and projects instantly
-- 📋 **Filtering** - View all, active, or completed tasks
-- 🔄 **Auto-refresh** - UI updates instantly after actions
-- 🔐 **Persistent Sessions** - Stay logged in across server restarts
+### Frontend Enhancements
+- **Mobile Responsiveness** (Issue #21): Complete mobile UI overhaul with touch-friendly interfaces
+- **Search UI**: Real-time search with debouncing
+- **Sort Controls**: Interactive sorting interface
+- **Template Manager**: Full CRUD interface for task templates
+- **Improved Validation**: Client-side validation with clear error messages
 
-### Technical Features
-- 🔐 **JWT Authentication** - Secure user sessions that persist
-- 🔗 **RESTful API** - Well-structured backend endpoints
-- 📦 **PostgreSQL Database** - Reliable data persistence
-- 🐳 **Docker Support** - Easy development setup
-- 🚀 **Production Ready** - Scalable architecture
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS (Ready for Catalyst UI Kit)
-- **State Management**: React Hooks + SWR
-- **Command Palette**: cmdk
-- **HTTP Client**: Axios
-- **UI Components**: Headless UI, Heroicons
+## Tech Stack
 
 ### Backend
-- **Framework**: FastAPI
-- **Language**: Python 3.11
-- **Database**: PostgreSQL + SQLAlchemy
-- **Authentication**: JWT (python-jose)
-- **AI Integration**: OpenAI API
-- **Migrations**: Alembic
+- **FastAPI**: Modern Python web framework
+- **SQLAlchemy**: SQL toolkit and ORM
+- **PostgreSQL**: Primary database
+- **Alembic**: Database migrations
+- **OpenAI**: AI integration
+- **SlowAPI**: Rate limiting
+- **JWT**: Authentication
 
-## 🚀 Quick Start
+### Frontend
+- **Next.js 13**: React framework with App Router
+- **TypeScript**: Type safety
+- **Tailwind CSS**: Utility-first CSS
+- **Headless UI**: Unstyled UI components
+- **SWR**: Data fetching and caching
+- **Axios**: HTTP client
+
+## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- Python 3.11+
-- PostgreSQL 15+
-- OpenAI API key
+- Docker and Docker Compose
+- Node.js 18+ (for local development)
+- Python 3.11+ (for local development)
+- PostgreSQL (or use Docker)
 
-### 1. Clone the Repository
+### Environment Setup
+
+1. Clone the repository:
 ```bash
-git clone https://github.com/imramugh/ai_task_manager.git
+git clone https://github.com/yourusername/ai_task_manager.git
 cd ai_task_manager
 ```
 
-### 2. Start PostgreSQL with Docker
+2. Create environment files:
+
+**Backend (.env)**:
 ```bash
-docker-compose up -d postgres
+cp backend/.env.example backend/.env
 ```
 
-### 3. Backend Setup
+Edit `backend/.env` with your configuration:
+```env
+DATABASE_URL=postgresql://user:password@localhost/ai_task_manager
+SECRET_KEY=your-secret-key-here
+OPENAI_API_KEY=your-openai-api-key
+```
+
+**Frontend (.env.local)**:
+```bash
+cp frontend/.env.example frontend/.env.local
+```
+
+### Running with Docker
+
+1. Start all services:
+```bash
+docker-compose up -d
+```
+
+2. Run database migrations:
+```bash
+docker-compose exec backend alembic upgrade head
+```
+
+3. Access the application:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+### Local Development
+
+#### Backend
 ```bash
 cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# Configure environment
-cp .env.example .env
-
-# Generate a secure SECRET_KEY (important for session persistence!)
-python generate_secret_key.py
-# Copy the generated key to your .env file
-
-# Add your OPENAI_API_KEY to .env
-
-# Run migrations
 alembic upgrade head
-
-# Start the server
 uvicorn main:app --reload
 ```
 
-### 4. Frontend Setup
+#### Frontend
 ```bash
-cd ../frontend
+cd frontend
 npm install
-
-# Configure environment
-cp .env.example .env.local
-
-# Start development server
 npm run dev
 ```
 
-### 5. Access the Application
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
+## API Documentation
 
-## 📸 Screenshots
+The API documentation is available at `http://localhost:8000/docs` when running the backend.
 
-### Task Management
-- Clean, intuitive interface for managing tasks
-- Visual priority indicators and due dates
-- One-click task completion
-- Multiple view modes (List, Grid, Calendar)
+### Key Endpoints
 
-### AI Assistant
-- Natural conversation interface
-- Intelligent task generation from descriptions
-- Context-aware suggestions
-- Project-specific task creation
+- **Authentication**
+  - `POST /api/auth/register` - Register new user
+  - `POST /api/auth/login` - Login (rate limited: 5/min)
+  
+- **Tasks**
+  - `GET /api/tasks` - List tasks (paginated, sortable)
+  - `GET /api/tasks/search` - Search tasks
+  - `POST /api/tasks/search/advanced` - Advanced search
+  - `POST /api/tasks` - Create task
+  - `PUT /api/tasks/{id}` - Update task
+  - `DELETE /api/tasks/{id}` - Delete task
+  
+- **Templates**
+  - `GET /api/templates` - List templates
+  - `POST /api/templates` - Create template
+  - `POST /api/templates/{id}/use` - Create task from template
+  
+- **AI Features**
+  - `POST /api/ai/chat` - Chat with AI (rate limited: 20/hour)
+  - `POST /api/ai/generate-tasks` - Generate tasks (rate limited: 10/hour)
+  - `POST /api/ai/analyze-productivity` - Get productivity analysis
 
-### Command Palette
-- Quick access to all features
-- Keyboard-first navigation
-- Instant task creation
-
-## 📖 API Documentation
-
-The backend provides a comprehensive REST API:
-
-### Authentication
-- `POST /api/auth/register` - Create new account
-- `POST /api/auth/login` - Login and receive JWT token
-- `GET /api/auth/me` - Get current user info
-
-### Tasks
-- `GET /api/tasks` - List all tasks (with filters)
-- `POST /api/tasks` - Create new task
-- `PUT /api/tasks/{id}` - Update task
-- `DELETE /api/tasks/{id}` - Delete task
-
-### Projects
-- `GET /api/projects` - List all projects
-- `POST /api/projects` - Create new project
-- `PUT /api/projects/{id}` - Update project
-- `DELETE /api/projects/{id}` - Delete project
-
-### AI Features
-- `POST /api/ai/chat` - Chat with AI assistant
-- `POST /api/ai/generate-tasks` - Generate tasks from description
-
-## 🌱 Environment Variables
-
-### Backend (.env)
-```env
-DATABASE_URL=postgresql://taskuser:taskpass@localhost:5432/ai_task_manager
-OPENAI_API_KEY=your-openai-api-key
-SECRET_KEY=your-generated-secret-key  # Use generate_secret_key.py
-ALLOWED_ORIGINS=http://localhost:3000
-ACCESS_TOKEN_EXPIRE_MINUTES=43200  # 30 days
-```
-
-### Frontend (.env.local)
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXTAUTH_SECRET=your-nextauth-secret
-NEXTAUTH_URL=http://localhost:3000
-```
-
-## 🔒 Session Persistence
-
-The application supports persistent sessions across server restarts:
-- JWT tokens are valid for 30 days by default
-- Sessions persist as long as the `SECRET_KEY` remains the same
-- In development, a consistent key is auto-generated
-- **In production**, always set a secure `SECRET_KEY` using `generate_secret_key.py`
-
-## 🛣️ Roadmap
-
-- [ ] Team collaboration features
-- [ ] Task templates
-- [ ] Recurring tasks
-- [ ] Calendar view (day/week/year)
-- [ ] Mobile app
-- [ ] Email notifications
-- [ ] Time tracking
-- [ ] Export functionality
-- [ ] Dark mode
-- [ ] Multi-language support
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with Next.js and FastAPI
-- UI components from Headless UI
-- Icons from Heroicons
-- Command palette powered by cmdk
-- AI capabilities powered by OpenAI
-
----
-
-<p align="center">Made with ❤️ by <a href="https://github.com/imramugh">imramugh</a></p>
+This project is licensed under the MIT License - see the LICENSE file for details.

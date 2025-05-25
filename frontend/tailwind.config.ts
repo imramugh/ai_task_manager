@@ -8,16 +8,15 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+      // Issue #21: Add mobile-specific breakpoints
+      screens: {
+        'xs': '475px',
       },
-      colors: {
-        catalyst: {
-          // These will be replaced with actual Catalyst UI colors
-          primary: '#000000',
-          secondary: '#666666',
-        }
-      }
+      // Issue #21: Ensure touch-friendly spacing
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
     },
   },
   plugins: [],

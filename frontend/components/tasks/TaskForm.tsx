@@ -1,205 +1,215 @@
 'use client';
 
-import { Fragment, useState, useEffect } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { tasks as taskApi, TaskCreate } from '@/lib/tasks';
-import { projects as projectApi, Project } from '@/lib/projects';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createTask, updateTask } from '@/lib/tasks';
+import { getProjects, Project } from '@/lib/projects';
+import { Task } from '@/lib/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 interface TaskFormProps {
-  onClose: () => void;
-  onSuccess: () => void;
-  defaultProjectId?: number | null;
+  task?: Task;
+  onSuccess?: (task: Task) => void;
+  onCancel?: () => void;
 }
 
-export default function TaskForm({ onClose, onSuccess, defaultProjectId }: TaskFormProps) {
-  const [loading, setLoading] = useState(false);
+export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
-  const [formData, setFormData] = useState<TaskCreate>({
-    title: '',
-    description: '',
-    priority: 'medium',
-    project_id: defaultProjectId || undefined,
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const [formData, setFormData] = useState({
+    title: task?.title || '',
+    description: task?.description || '',
+    priority: task?.priority || 'medium',
+    due_date: task?.due_date ? task.due_date.split('T')[0] : '',
+    project_id: task?.project_id || '',
   });
 
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  const loadProjects = async () => {
-    try {
-      const data = await projectApi.getAll();
-      setProjects(data);
-    } catch (error) {
-      console.error('Failed to load projects');
+  // Issue #17: Client-side validation
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.title.trim()) {
+      newErrors.title = 'Task title is required';
+    } else if (formData.title.trim().length < 3) {
+      newErrors.title = 'Task title must be at least 3 characters long';
     }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.trim()) {
-      toast.error('Please enter a task title');
+    // Issue #17: Validate before submitting
+    if (!validateForm()) {
       return;
     }
+    
+    setIsSubmitting(true);
 
-    setLoading(true);
     try {
-      await taskApi.create(formData);
-      toast.success('Task created successfully!');
-      onSuccess();
-    } catch (error) {
-      toast.error('Failed to create task');
+      const taskData = {
+        ...formData,
+        title: formData.title.trim(),
+        description: formData.description?.trim() || undefined,
+        project_id: formData.project_id || undefined,
+        due_date: formData.due_date || undefined,
+      };
+
+      let savedTask;
+      if (task) {
+        savedTask = await updateTask(task.id, taskData);
+        toast.success('Task updated successfully!');
+      } else {
+        savedTask = await createTask(taskData);
+        toast.success('Task created successfully!');
+      }
+
+      if (onSuccess) {
+        onSuccess(savedTask);
+      } else {
+        router.push('/tasks');
+      }
+    } catch (error: any) {
+      // Issue #17: Handle validation errors from backend
+      if (error.response?.data?.detail) {
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          const validationErrors: Record<string, string> = {};
+          detail.forEach((err: any) => {
+            if (err.loc && err.loc.length > 1) {
+              validationErrors[err.loc[1]] = err.msg;
+            }
+          });
+          setErrors(validationErrors);
+        } else {
+          toast.error(detail);
+        }
+      } else {
+        toast.error('Failed to save task. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <Transition.Root show={true} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={onClose}>
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-        </Transition.Child>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+          Title <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="title"
+          value={formData.title}
+          onChange={(e) => {
+            setFormData({ ...formData, title: e.target.value });
+            // Clear error when user starts typing
+            if (errors.title) {
+              setErrors({ ...errors, title: '' });
+            }
+          }}
+          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+            errors.title
+              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+              : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+          }`}
+          placeholder="Enter task title"
+        />
+        {errors.title && (
+          <p className="mt-1 text-sm text-red-600">{errors.title}</p>
+        )}
+      </div>
 
-        <div className="fixed inset-0 z-10 overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <Transition.Child
-              as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-              enterTo="opacity-100 translate-y-0 sm:scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            >
-              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-                  <button
-                    type="button"
-                    className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                    onClick={onClose}
-                  >
-                    <span className="sr-only">Close</span>
-                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
-                  </button>
-                </div>
-                <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
-                      Create New Task
-                    </Dialog.Title>
-                    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-                      <div>
-                        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-                          Title
-                        </label>
-                        <input
-                          type="text"
-                          id="title"
-                          value={formData.title}
-                          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                          className="input-base mt-1"
-                          placeholder="Enter task title"
-                        />
-                      </div>
+      <div>
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          Description
+        </label>
+        <textarea
+          id="description"
+          rows={4}
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          placeholder="Add task details..."
+        />
+      </div>
 
-                      <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                          Description (optional)
-                        </label>
-                        <textarea
-                          id="description"
-                          rows={3}
-                          value={formData.description}
-                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                          className="textarea-base mt-1"
-                          placeholder="Add a description..."
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="project" className="block text-sm font-medium text-gray-700">
-                          Project (optional)
-                        </label>
-                        <select
-                          id="project"
-                          value={formData.project_id || ''}
-                          onChange={(e) => setFormData({ ...formData, project_id: e.target.value ? parseInt(e.target.value) : undefined })}
-                          className="select-base mt-1"
-                        >
-                          <option value="">No project</option>
-                          {projects.map((project) => (
-                            <option key={project.id} value={project.id}>
-                              {project.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
-                          Priority
-                        </label>
-                        <select
-                          id="priority"
-                          value={formData.priority}
-                          onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                          className="select-base mt-1"
-                        >
-                          <option value="low">Low</option>
-                          <option value="medium">Medium</option>
-                          <option value="high">High</option>
-                          <option value="urgent">Urgent</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label htmlFor="due_date" className="block text-sm font-medium text-gray-700">
-                          Due Date (optional)
-                        </label>
-                        <input
-                          type="datetime-local"
-                          id="due_date"
-                          value={formData.due_date}
-                          onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                          className="input-base mt-1"
-                        />
-                      </div>
-
-                      <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {loading ? 'Creating...' : 'Create Task'}
-                        </button>
-                        <button
-                          type="button"
-                          className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                          onClick={onClose}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              </Dialog.Panel>
-            </Transition.Child>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="priority" className="block text-sm font-medium text-gray-700">
+            Priority
+          </label>
+          <select
+            id="priority"
+            value={formData.priority}
+            onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          >
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
         </div>
-      </Dialog>
-    </Transition.Root>
+
+        <div>
+          <label htmlFor="due_date" className="block text-sm font-medium text-gray-700">
+            Due Date
+          </label>
+          <input
+            type="date"
+            id="due_date"
+            value={formData.due_date}
+            onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="project_id" className="block text-sm font-medium text-gray-700">
+          Project
+        </label>
+        <select
+          id="project_id"
+          value={formData.project_id}
+          onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+        >
+          <option value="">No project</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex justify-end space-x-3">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Cancel
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Saving...' : task ? 'Update Task' : 'Create Task'}
+        </button>
+      </div>
+    </form>
   );
 }
