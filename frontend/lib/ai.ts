@@ -1,8 +1,16 @@
 import api from './api';
 
+// Individual message in conversation history
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
 export interface ChatMessage {
   content: string;
   context?: any;
+  // Add conversation history support
+  conversation_history?: ConversationMessage[];
 }
 
 export interface TaskSuggestion {

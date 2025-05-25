@@ -4,7 +4,7 @@ from typing import List
 from openai import OpenAI
 import json
 from app.database import get_db
-from app.schemas.ai import ChatMessage, ChatResponse, TaskSuggestion
+from app.schemas.ai import ChatMessage, ChatResponse, TaskSuggestion, ConversationMessage
 from app.models.user import User as UserModel
 from app.models.task import Task as TaskModel
 from app.services.auth import get_current_user
@@ -42,15 +42,27 @@ async def chat_with_assistant(
         4. Output task suggestions in a structured format
         
         Always be helpful, concise, and focused on actionable task management.
+        Remember the context of the conversation to provide relevant responses.
         """
+        
+        # Build messages array with conversation history
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add conversation history if provided
+        if message.conversation_history:
+            for hist_msg in message.conversation_history:
+                messages.append({
+                    "role": hist_msg.role,
+                    "content": hist_msg.content
+                })
+        
+        # Add the current message
+        messages.append({"role": "user", "content": message.content})
         
         # Create the chat completion using the new client
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": message.content}
-            ],
+            messages=messages,
             temperature=0.7,
             max_tokens=500
         )
@@ -114,12 +126,25 @@ async def generate_tasks(
             }
         ]
         
+        # Build messages with conversation history for better context
+        messages = [
+            {"role": "system", "content": "You are a task planning assistant. Generate structured tasks based on user requirements and conversation context."}
+        ]
+        
+        # Add conversation history if provided
+        if message.conversation_history:
+            for hist_msg in message.conversation_history:
+                messages.append({
+                    "role": hist_msg.role,
+                    "content": hist_msg.content
+                })
+        
+        # Add the current message
+        messages.append({"role": "user", "content": message.content})
+        
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a task planning assistant. Generate structured tasks based on user requirements."},
-                {"role": "user", "content": message.content}
-            ],
+            messages=messages,
             tools=functions,
             tool_choice={"type": "function", "function": {"name": "create_tasks"}}
         )
