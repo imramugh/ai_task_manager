@@ -1,10 +1,17 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 import secrets
 import warnings
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="forbid"  # We'll handle this differently
+    )
+    
     # Database
     database_url: str = Field(
         default="postgresql://taskuser:taskpass@localhost:5432/ai_task_manager"
@@ -21,7 +28,7 @@ class Settings(BaseSettings):
     # CORS
     allowed_origins: str = Field(default="http://localhost:3000")
     
-    # Email settings - these will accept lowercase env vars
+    # Email settings - these will accept uppercase env vars via case_sensitive=False
     smtp_host: str = Field(default="smtp.gmail.com")
     smtp_port: int = Field(default=587)
     smtp_username: Optional[str] = Field(default=None)
@@ -36,13 +43,6 @@ class Settings(BaseSettings):
     
     # Password reset token expiry
     password_reset_token_expire_hours: int = Field(default=24)
-    
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
-        extra="allow"  # Allow extra fields to prevent validation errors
-    )
     
     @field_validator('secret_key')
     def validate_secret_key(cls, v):
