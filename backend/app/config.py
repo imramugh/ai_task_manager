@@ -58,7 +58,9 @@ class Settings(BaseSettings):
             warnings.warn("SMTP settings not configured - password reset emails will be disabled")
         return v
     
-    class Config:
-        env_file = ".env"
+    model_config = {
+        "env_file": ".env",
+        "extra": "ignore"  # This will ignore extra fields in .env file
+    }
 
 settings = Settings()
