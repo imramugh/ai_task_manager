@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ai } from '@/lib/ai';
 import { projects as projectApi, Project } from '@/lib/projects';
-import { PaperAirplaneIcon, FolderIcon, PlusIcon } from '@heroicons/react/24/solid';
+import { PaperAirplaneIcon, FolderIcon, SparklesIcon } from '@heroicons/react/24/solid';
 import toast from 'react-hot-toast';
 
 interface Message {
@@ -141,6 +141,9 @@ export default function AIChat() {
     return (
       <div className="min-h-[calc(100vh-240px)] flex flex-col items-center justify-center">
         <div className="text-center mb-8">
+          <div className="flex items-center justify-center mb-4">
+            <SparklesIcon className="h-8 w-8 text-orange-500" />
+          </div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Welcome back, let's get productive!</h2>
           <p className="text-gray-600">How can I help you organize your tasks today?</p>
         </div>
@@ -201,7 +204,7 @@ export default function AIChat() {
                     className="w-3 h-3 rounded-sm mr-2"
                     style={{ backgroundColor: selectedProject.color }}
                   />
-                  <span>{selectedProject.name}</span>
+                  <span className="text-xs">{selectedProject.name}</span>
                 </div>
               )}
               
@@ -262,10 +265,8 @@ export default function AIChat() {
         {loading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 rounded-lg px-4 py-2">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+              <div className="flex items-center space-x-2">
+                <SparklesIcon className="h-4 w-4 text-orange-500 animate-pulse" />
               </div>
             </div>
           </div>
