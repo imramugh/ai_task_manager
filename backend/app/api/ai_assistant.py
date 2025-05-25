@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.database import get_db
 from app.schemas.ai import AIRequest, AIResponse
 from app.models.user import User as UserModel
