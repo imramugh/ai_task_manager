@@ -20,6 +20,22 @@ class Settings(BaseSettings):
     # CORS
     allowed_origins: str = "http://localhost:3000"
     
+    # Email settings for password reset
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_from_email: Optional[str] = None
+    smtp_from_name: str = "AI Task Manager"
+    smtp_tls: bool = True
+    smtp_ssl: bool = False
+    
+    # Frontend URL for password reset links
+    frontend_url: str = "http://localhost:3000"
+    
+    # Password reset token expiry (in hours)
+    password_reset_token_expire_hours: int = 24
+    
     # Fix #2: Add validation for secure secret key
     @field_validator('secret_key')
     def validate_secret_key(cls, v):
@@ -34,6 +50,12 @@ class Settings(BaseSettings):
     def validate_openai_key(cls, v):
         if not v:
             warnings.warn("OPENAI_API_KEY not set - AI features will be disabled")
+        return v
+    
+    @field_validator('smtp_username')
+    def validate_smtp_settings(cls, v):
+        if not v:
+            warnings.warn("SMTP settings not configured - password reset emails will be disabled")
         return v
     
     class Config:
