@@ -1,0 +1,66 @@
+/* Fix #6: Styles to prevent text overlap in AI chat input */
+
+/* Container for the chat input area */
+.ai-chat-input-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  width: 100%;
+}
+
+/* Main chat input field */
+.ai-chat-input {
+  flex: 1;
+  padding-right: 200px; /* Space for project selector and submit button */
+  padding-left: 1rem;
+  min-height: 3rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.ai-chat-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Project selector styling */
+.ai-chat-project-selector {
+  position: absolute;
+  right: 60px; /* Position before submit button */
+  top: 50%;
+  transform: translateY(-50%);
+  max-width: 150px;
+}
+
+/* Submit button styling */
+.ai-chat-submit {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  background-color: #3b82f6;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.ai-chat-submit:hover {
+  background-color: #2563eb;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .ai-chat-input {
+    padding-right: 150px; /* Less space on mobile */
+  }
+  
+  .ai-chat-project-selector {
+    max-width: 120px;
+    right: 50px;
+  }
+}
