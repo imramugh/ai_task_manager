@@ -1,10 +1,23 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth } from '@/lib/auth';
+
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (auth.isAuthenticated()) {
+      router.push('/dashboard');
+    } else {
+      router.push('/login');
+    }
+  }, [router]);
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">AI Task Manager</h1>
-        <p className="text-xl text-gray-600">Intelligent task management is coming soon!</p>
-      </div>
-    </main>
-  )
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+  );
 }

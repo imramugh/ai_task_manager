@@ -19,6 +19,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   useEffect(() => {
+    if (!auth.isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    
     loadUser();
 
     // Set up keyboard shortcut for command palette
@@ -31,13 +36,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [router]);
 
   const loadUser = async () => {
     try {
       const userData = await auth.getMe();
       setUser(userData);
     } catch (error) {
+      console.error('Failed to load user:', error);
       router.push('/login');
     } finally {
       setLoading(false);
