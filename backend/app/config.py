@@ -1,16 +1,11 @@
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
+from typing import Optional, Any, Dict
 import secrets
 import warnings
+import os
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="allow"  # Allow extra fields
-    )
-    
     # Database
     database_url: str = Field(
         default="postgresql://taskuser:taskpass@localhost:5432/ai_task_manager"
@@ -43,6 +38,44 @@ class Settings(BaseSettings):
     # Password reset token expiry
     password_reset_token_expire_hours: int = Field(default=24)
     
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        env_ignore_empty=True
+    )
+    
+    def __init__(self, **data):
+        # Manually handle environment variables with different cases
+        env_mapping = {
+            'SMTP_HOST': 'smtp_host',
+            'SMTP_PORT': 'smtp_port',
+            'SMTP_USERNAME': 'smtp_username',
+            'SMTP_PASSWORD': 'smtp_password',
+            'SMTP_FROM_EMAIL': 'smtp_from_email',
+            'SMTP_FROM_NAME': 'smtp_from_name',
+            'SMTP_TLS': 'smtp_tls',
+            'SMTP_SSL': 'smtp_ssl',
+            'FRONTEND_URL': 'frontend_url',
+            'PASSWORD_RESET_TOKEN_EXPIRE_HOURS': 'password_reset_token_expire_hours',
+        }
+        
+        # Check environment variables directly
+        for env_key, field_key in env_mapping.items():
+            if env_key in os.environ and field_key not in data:
+                value = os.environ[env_key]
+                # Convert string values to appropriate types
+                if field_key == 'smtp_port':
+                    data[field_key] = int(value)
+                elif field_key == 'password_reset_token_expire_hours':
+                    data[field_key] = int(value)
+                elif field_key in ['smtp_tls', 'smtp_ssl']:
+                    data[field_key] = value.lower() in ['true', '1', 'yes']
+                else:
+                    data[field_key] = value
+        
+        super().__init__(**data)
+    
     @field_validator('secret_key')
     def validate_secret_key(cls, v):
         if v == "your-secret-key-here":
@@ -65,8 +98,3 @@ class Settings(BaseSettings):
 
 # Create settings instance
 settings = Settings()
-
-# Debug: print what we got
-print(f"Settings loaded successfully!")
-print(f"SMTP Host: {settings.smtp_host}")
-print(f"SMTP Username: {settings.smtp_username}")
