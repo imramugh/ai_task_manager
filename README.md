@@ -15,12 +15,14 @@ An intelligent task management application with AI-powered assistant for smart t
 - 📅 **Due Dates** - Set deadlines and track time-sensitive tasks
 - 🏷️ **Projects** - Group related tasks into projects with custom colors
 - ✔️ **Task Completion** - Mark tasks as complete with visual feedback
+- 📅 **Multiple Views** - List, Grid, and Calendar views
 
 ### AI-Powered Features
 - 🤖 **Intelligent Task Generation** - Describe your project and let AI create tasks
 - 💬 **Natural Language Chat** - Chat with AI to plan and organize work
 - 💡 **Smart Suggestions** - Get AI recommendations for task breakdown
 - 🎯 **Context-Aware** - AI understands your project context
+- 📁 **Project Integration** - AI-generated tasks automatically assigned to selected projects
 
 ### User Experience
 - ⌘ **Command Palette** - Quick actions with Cmd/Ctrl + K
@@ -28,9 +30,10 @@ An intelligent task management application with AI-powered assistant for smart t
 - 🔍 **Real-time Search** - Find tasks and projects instantly
 - 📋 **Filtering** - View all, active, or completed tasks
 - 🔄 **Auto-refresh** - UI updates instantly after actions
+- 🔐 **Persistent Sessions** - Stay logged in across server restarts
 
 ### Technical Features
-- 🔐 **JWT Authentication** - Secure user sessions
+- 🔐 **JWT Authentication** - Secure user sessions that persist
 - 🔗 **RESTful API** - Well-structured backend endpoints
 - 📦 **PostgreSQL Database** - Reliable data persistence
 - 🐳 **Docker Support** - Easy development setup
@@ -83,7 +86,12 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+
+# Generate a secure SECRET_KEY (important for session persistence!)
+python generate_secret_key.py
+# Copy the generated key to your .env file
+
+# Add your OPENAI_API_KEY to .env
 
 # Run migrations
 alembic upgrade head
@@ -115,11 +123,13 @@ npm run dev
 - Clean, intuitive interface for managing tasks
 - Visual priority indicators and due dates
 - One-click task completion
+- Multiple view modes (List, Grid, Calendar)
 
 ### AI Assistant
 - Natural conversation interface
 - Intelligent task generation from descriptions
 - Context-aware suggestions
+- Project-specific task creation
 
 ### Command Palette
 - Quick access to all features
@@ -157,8 +167,9 @@ The backend provides a comprehensive REST API:
 ```env
 DATABASE_URL=postgresql://taskuser:taskpass@localhost:5432/ai_task_manager
 OPENAI_API_KEY=your-openai-api-key
-SECRET_KEY=your-secret-key-for-jwt
+SECRET_KEY=your-generated-secret-key  # Use generate_secret_key.py
 ALLOWED_ORIGINS=http://localhost:3000
+ACCESS_TOKEN_EXPIRE_MINUTES=43200  # 30 days
 ```
 
 ### Frontend (.env.local)
@@ -168,12 +179,20 @@ NEXTAUTH_SECRET=your-nextauth-secret
 NEXTAUTH_URL=http://localhost:3000
 ```
 
+## 🔒 Session Persistence
+
+The application supports persistent sessions across server restarts:
+- JWT tokens are valid for 30 days by default
+- Sessions persist as long as the `SECRET_KEY` remains the same
+- In development, a consistent key is auto-generated
+- **In production**, always set a secure `SECRET_KEY` using `generate_secret_key.py`
+
 ## 🛣️ Roadmap
 
 - [ ] Team collaboration features
 - [ ] Task templates
 - [ ] Recurring tasks
-- [ ] Calendar view
+- [ ] Calendar view (day/week/year)
 - [ ] Mobile app
 - [ ] Email notifications
 - [ ] Time tracking
