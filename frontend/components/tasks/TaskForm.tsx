@@ -91,7 +91,7 @@ export default function TaskForm({ onClose, onSuccess }: TaskFormProps) {
                           id="title"
                           value={formData.title}
                           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="input-base mt-1"
                           placeholder="Enter task title"
                         />
                       </div>
@@ -105,7 +105,7 @@ export default function TaskForm({ onClose, onSuccess }: TaskFormProps) {
                           rows={3}
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="textarea-base mt-1"
                           placeholder="Add a description..."
                         />
                       </div>
@@ -118,7 +118,7 @@ export default function TaskForm({ onClose, onSuccess }: TaskFormProps) {
                           id="priority"
                           value={formData.priority}
                           onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="select-base mt-1"
                         >
                           <option value="low">Low</option>
                           <option value="medium">Medium</option>
@@ -136,7 +136,7 @@ export default function TaskForm({ onClose, onSuccess }: TaskFormProps) {
                           id="due_date"
                           value={formData.due_date}
                           onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="input-base mt-1"
                         />
                       </div>
 

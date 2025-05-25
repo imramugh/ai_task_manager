@@ -21,3 +21,17 @@
     @apply bg-white text-gray-900;
   }
 }
+
+@layer components {
+  .input-base {
+    @apply block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm;
+  }
+  
+  .select-base {
+    @apply block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm;
+  }
+  
+  .textarea-base {
+    @apply block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm;
+  }
+}

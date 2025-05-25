@@ -102,7 +102,7 @@ export default function ProjectForm({ onClose, onSuccess }: ProjectFormProps) {
                           id="name"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="input-base mt-1"
                           placeholder="Enter project name"
                         />
                       </div>
@@ -116,7 +116,7 @@ export default function ProjectForm({ onClose, onSuccess }: ProjectFormProps) {
                           rows={3}
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          className="textarea-base mt-1"
                           placeholder="Add a description..."
                         />
                       </div>
