@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Issue #21: Mobile-specific styles */
+@layer base {
+  /* Ensure proper touch targets on mobile */
+  button, a {
+    @apply min-h-[44px];
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  html, body {
+    @apply overflow-x-hidden;
+  }
+  
+  /* Better mobile text readability */
+  @media (max-width: 640px) {
+    html {
+      font-size: 16px;
+    }
+  }
+}
+
+@layer components {
+  /* Issue #21: Mobile-friendly card styles */
+  .task-card {
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4;
+    @apply hover:shadow-md transition-shadow duration-200;
+  }
+  
+  @media (max-width: 640px) {
+    .task-card {
+      @apply p-3;
+    }
+  }
+  
+  /* Mobile-optimized form inputs */
+  .form-input {
+    @apply block w-full rounded-md border-gray-300 shadow-sm;
+    @apply focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+    @apply px-3 py-2;
+  }
+  
+  /* Touch-friendly buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center;
+    @apply px-4 py-2 border border-transparent rounded-md shadow-sm;
+    @apply text-sm font-medium text-white bg-indigo-600;
+    @apply hover:bg-indigo-700 focus:outline-none focus:ring-2;
+    @apply focus:ring-offset-2 focus:ring-indigo-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply min-h-[44px];
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center;
+    @apply px-4 py-2 border border-gray-300 rounded-md shadow-sm;
+    @apply text-sm font-medium text-gray-700 bg-white;
+    @apply hover:bg-gray-50 focus:outline-none focus:ring-2;
+    @apply focus:ring-offset-2 focus:ring-indigo-500;
+    @apply min-h-[44px];
+  }
+}
+
+@layer utilities {
+  /* Issue #21: Hide scrollbar on mobile for better UX */
+  @media (max-width: 640px) {
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  
+  /* Safe area insets for modern mobile devices */
+  .safe-area-inset {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

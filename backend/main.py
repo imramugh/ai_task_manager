@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
@@ -8,7 +8,13 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import datetime
 
-from app.api import tasks, auth, ai_assistant, projects, tags
+# Issue #18: Import rate limiting
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+
+from app.api import tasks, auth, ai_assistant, projects, tags, templates  # Issue #23: Add templates
 from app.database import engine, Base, get_db
 from app.config import settings
 
@@ -18,6 +24,9 @@ load_dotenv()
 # Fix #5: Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Issue #18: Create rate limiter instance
+limiter = Limiter(key_func=get_remote_address)
 
 # Fix #5: Validate environment on startup
 def validate_environment():
@@ -67,6 +76,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Issue #18: Add rate limiting
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
 # Configure CORS
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 
@@ -84,6 +98,7 @@ app.include_router(tasks.router, prefix="/api/tasks", tags=["tasks"])
 app.include_router(projects.router, prefix="/api/projects", tags=["projects"])
 app.include_router(tags.router, prefix="/api/tags", tags=["tags"])
 app.include_router(ai_assistant.router, prefix="/api/ai", tags=["ai"])
+app.include_router(templates.router, prefix="/api/templates", tags=["templates"])  # Issue #23
 
 @app.get("/")
 async def root():
