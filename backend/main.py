@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 import os
 import logging
@@ -11,7 +12,7 @@ from datetime import datetime
 # Issue #18: Import rate limiting
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from app.api import tasks, auth, ai_assistant, projects, tags, templates  # Issue #23: Add templates
@@ -78,7 +79,13 @@ app = FastAPI(
 
 # Issue #18: Add rate limiting
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Create rate limit exceeded handler
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    response = {"detail": f"Rate limit exceeded: {exc.detail}"}
+    return JSONResponse(status_code=429, content=response)
+
+app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
 
 # Configure CORS
