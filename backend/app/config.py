@@ -5,44 +5,48 @@ import secrets
 import warnings
 
 class Settings(BaseSettings):
+    # Model configuration at the class level
     model_config = SettingsConfigDict(
         env_file=".env",
+        env_file_encoding="utf-8",
         case_sensitive=False,
-        extra="ignore"
+        extra="ignore",
+        validate_default=True
     )
     
     # Database
-    database_url: str = "postgresql://taskuser:taskpass@localhost:5432/ai_task_manager"
+    database_url: str = Field(
+        default="postgresql://taskuser:taskpass@localhost:5432/ai_task_manager",
+        env="DATABASE_URL"
+    )
     
-    # Security - Fix #2: Generate secure default for development only
+    # Security
     secret_key: str = Field(default_factory=lambda: secrets.token_urlsafe(32))
-    algorithm: str = "HS256"
-    # Fix #3: Update to 30 days as documented in README
-    access_token_expire_minutes: int = 60 * 24 * 30  # 30 days
+    algorithm: str = Field(default="HS256")
+    access_token_expire_minutes: int = Field(default=60 * 24 * 30)  # 30 days
     
     # OpenAI
-    openai_api_key: Optional[str] = None
+    openai_api_key: Optional[str] = Field(default=None)
     
     # CORS
-    allowed_origins: str = "http://localhost:3000"
+    allowed_origins: str = Field(default="http://localhost:3000")
     
-    # Email settings for password reset
-    smtp_host: str = "smtp.gmail.com"
-    smtp_port: int = 587
-    smtp_username: Optional[str] = None
-    smtp_password: Optional[str] = None
-    smtp_from_email: Optional[str] = None
-    smtp_from_name: str = "AI Task Manager"
-    smtp_tls: bool = True
-    smtp_ssl: bool = False
+    # Email settings - explicitly define environment variable names
+    smtp_host: str = Field(default="smtp.gmail.com", env="SMTP_HOST")
+    smtp_port: int = Field(default=587, env="SMTP_PORT")
+    smtp_username: Optional[str] = Field(default=None, env="SMTP_USERNAME")
+    smtp_password: Optional[str] = Field(default=None, env="SMTP_PASSWORD")
+    smtp_from_email: Optional[str] = Field(default=None, env="SMTP_FROM_EMAIL")
+    smtp_from_name: str = Field(default="AI Task Manager", env="SMTP_FROM_NAME")
+    smtp_tls: bool = Field(default=True, env="SMTP_TLS")
+    smtp_ssl: bool = Field(default=False, env="SMTP_SSL")
     
-    # Frontend URL for password reset links
-    frontend_url: str = "http://localhost:3000"
+    # Frontend URL
+    frontend_url: str = Field(default="http://localhost:3000", env="FRONTEND_URL")
     
-    # Password reset token expiry (in hours)
-    password_reset_token_expire_hours: int = 24
+    # Password reset token expiry
+    password_reset_token_expire_hours: int = Field(default=24, env="PASSWORD_RESET_TOKEN_EXPIRE_HOURS")
     
-    # Fix #2: Add validation for secure secret key
     @field_validator('secret_key')
     def validate_secret_key(cls, v):
         if v == "your-secret-key-here":
@@ -51,7 +55,6 @@ class Settings(BaseSettings):
             warnings.warn("SECRET_KEY should be at least 32 characters for security")
         return v
     
-    # Fix #5: Add validation for critical settings
     @field_validator('openai_api_key')
     def validate_openai_key(cls, v):
         if not v:
@@ -64,4 +67,5 @@ class Settings(BaseSettings):
             warnings.warn("SMTP settings not configured - password reset emails will be disabled")
         return v
 
+# Create settings instance
 settings = Settings()
