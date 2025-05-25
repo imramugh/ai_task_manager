@@ -209,20 +209,20 @@ export default function AIChat() {
           <p className="text-gray-600">How can I help you organize your tasks today?</p>
         </div>
         
-        <form onSubmit={handleSendMessage} className="w-full max-w-2xl">
-          <div className="relative bg-white rounded-lg shadow-sm border border-gray-200">
+        <form onSubmit={handleSendMessage} className="w-full">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2">
             <textarea
               ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="How can I help you today?"
-              className="w-full resize-none rounded-lg px-4 py-3 pr-48 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[56px] max-h-[200px]"
+              className="w-full resize-none rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[56px] max-h-[200px]"
               rows={1}
             />
-            
-            {/* Fixed position buttons at bottom-right */}
-            <div className="absolute bottom-3 right-3 flex items-center space-x-2">
+
+            {/* Buttons */}
+            <div className="flex items-center space-x-2 mt-2 justify-end">
               {selectedProject && (
                 <div className="flex items-center px-2 py-1 bg-gray-100 rounded-md text-sm text-gray-700">
                   <div
@@ -409,20 +409,20 @@ export default function AIChat() {
 
       {/* Input Form */}
       <form onSubmit={handleSendMessage} className="border-t border-gray-200 p-4">
-        <div className="relative bg-gray-50 rounded-lg">
+        <div className="bg-gray-50 rounded-lg p-2">
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Reply to assistant..."
-            className="w-full resize-none rounded-lg px-4 py-3 pr-48 bg-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[48px] max-h-[200px]"
+            className="w-full resize-none rounded-lg px-4 py-3 bg-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[48px] max-h-[200px]"
             disabled={loading}
             rows={1}
           />
-          
-          {/* Fixed position buttons at bottom-right */}
-          <div className="absolute bottom-3 right-3 flex items-center space-x-2">
+
+          {/* Buttons */}
+          <div className="flex items-center space-x-2 mt-2 justify-end">
             {selectedProject && (
               <div className="flex items-center px-2 py-1 bg-white rounded-md text-sm text-gray-700">
                 <div
