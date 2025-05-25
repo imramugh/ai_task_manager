@@ -2,17 +2,16 @@
 
 import { useState } from 'react';
 import { Task } from '@/lib/tasks';
-import TaskItem from './TaskItem';
+import TaskCard from './TaskCard';
 import TaskForm from './TaskForm';
 import { PlusIcon } from '@heroicons/react/24/outline';
 
-interface TaskListProps {
+interface TaskGridProps {
   tasks: Task[];
   onUpdate: () => void;
-  selectedProjectId?: number | null;
 }
 
-export default function TaskList({ tasks, onUpdate, selectedProjectId }: TaskListProps) {
+export default function TaskGrid({ tasks, onUpdate }: TaskGridProps) {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
 
@@ -76,10 +75,10 @@ export default function TaskList({ tasks, onUpdate, selectedProjectId }: TaskLis
         </button>
       </div>
 
-      {/* Task List */}
-      <div className="space-y-2">
+      {/* Task Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredTasks.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="col-span-full text-center py-12">
             <p className="text-sm text-gray-500">
               {filter === 'all'
                 ? 'No tasks yet. Create your first task!'
@@ -88,7 +87,7 @@ export default function TaskList({ tasks, onUpdate, selectedProjectId }: TaskLis
           </div>
         ) : (
           filteredTasks.map((task) => (
-            <TaskItem key={task.id} task={task} onUpdate={onUpdate} />
+            <TaskCard key={task.id} task={task} onUpdate={onUpdate} />
           ))
         )}
       </div>
@@ -101,7 +100,6 @@ export default function TaskList({ tasks, onUpdate, selectedProjectId }: TaskLis
             setShowForm(false);
             onUpdate();
           }}
-          defaultProjectId={selectedProjectId}
         />
       )}
     </div>

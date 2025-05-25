@@ -1,23 +1,40 @@
 'use client';
 
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { tasks as taskApi, TaskCreate } from '@/lib/tasks';
+import { projects as projectApi, Project } from '@/lib/projects';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 
 interface TaskFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  defaultProjectId?: number | null;
 }
 
-export default function TaskForm({ onClose, onSuccess }: TaskFormProps) {
+export default function TaskForm({ onClose, onSuccess, defaultProjectId }: TaskFormProps) {
   const [loading, setLoading] = useState(false);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [formData, setFormData] = useState<TaskCreate>({
     title: '',
     description: '',
     priority: 'medium',
+    project_id: defaultProjectId || undefined,
   });
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    try {
+      const data = await projectApi.getAll();
+      setProjects(data);
+    } catch (error) {
+      console.error('Failed to load projects');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +125,25 @@ export default function TaskForm({ onClose, onSuccess }: TaskFormProps) {
                           className="textarea-base mt-1"
                           placeholder="Add a description..."
                         />
+                      </div>
+
+                      <div>
+                        <label htmlFor="project" className="block text-sm font-medium text-gray-700">
+                          Project (optional)
+                        </label>
+                        <select
+                          id="project"
+                          value={formData.project_id || ''}
+                          onChange={(e) => setFormData({ ...formData, project_id: e.target.value ? parseInt(e.target.value) : undefined })}
+                          className="select-base mt-1"
+                        >
+                          <option value="">No project</option>
+                          {projects.map((project) => (
+                            <option key={project.id} value={project.id}>
+                              {project.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
 
                       <div>
