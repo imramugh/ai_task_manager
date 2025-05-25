@@ -13,7 +13,8 @@ from app.config import settings
 router = APIRouter()
 
 # Configure OpenAI
-openai.api_key = settings.openai_api_key
+if settings.openai_api_key:
+    openai.api_key = settings.openai_api_key
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_assistant(
@@ -21,6 +22,12 @@ async def chat_with_assistant(
     current_user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="OpenAI API key not configured. Please set OPENAI_API_KEY in your environment variables."
+        )
+    
     try:
         # Create the system prompt
         system_prompt = """
@@ -63,6 +70,12 @@ async def generate_tasks(
     current_user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    if not settings.openai_api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="OpenAI API key not configured. Please set OPENAI_API_KEY in your environment variables."
+        )
+    
     try:
         # Create a function calling prompt
         functions = [

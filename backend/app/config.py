@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
     
     # OpenAI
-    openai_api_key: str
+    openai_api_key: Optional[str] = None
     
     # CORS
     allowed_origins: str = "http://localhost:3000"
