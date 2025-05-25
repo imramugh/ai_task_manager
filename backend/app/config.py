@@ -1,10 +1,16 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, field_validator
 from typing import Optional
 import secrets
 import warnings
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=False,
+        extra="ignore"
+    )
+    
     # Database
     database_url: str = "postgresql://taskuser:taskpass@localhost:5432/ai_task_manager"
     
@@ -57,10 +63,5 @@ class Settings(BaseSettings):
         if not v:
             warnings.warn("SMTP settings not configured - password reset emails will be disabled")
         return v
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False  # This makes the env vars case-insensitive
-        extra = "ignore"  # Ignore extra fields
 
 settings = Settings()
