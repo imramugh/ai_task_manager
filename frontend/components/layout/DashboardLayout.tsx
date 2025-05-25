@@ -16,13 +16,24 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(auth.getCachedUser());
+  const [loading, setLoading] = useState(!user); // Only load if no cached user
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    checkAuth();
+    if (!auth.isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    
+    // If we don't have a cached user, load it
+    if (!user) {
+      loadUser();
+    } else {
+      // Verify the cached user is still valid in the background
+      verifyUser();
+    }
 
     // Set up keyboard shortcut for command palette
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -34,23 +45,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [router, user]);
 
-  const checkAuth = async () => {
-    // First check if we have a token
-    if (!auth.isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-
-    // Then verify the token is still valid
+  const loadUser = async () => {
     try {
       const userData = await auth.getMe();
       setUser(userData);
-      setLoading(false);
     } catch (error) {
-      // Token is invalid, redirect to login
-      console.error('Auth check failed:', error);
+      console.error('Failed to load user:', error);
+      router.push('/login');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyUser = async () => {
+    try {
+      const userData = await auth.getMe();
+      setUser(userData);
+    } catch (error) {
+      console.error('Session expired:', error);
       router.push('/login');
     }
   };

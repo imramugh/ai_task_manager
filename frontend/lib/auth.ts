@@ -33,8 +33,13 @@ export const auth = {
     
     if (response.data.access_token) {
       localStorage.setItem('token', response.data.access_token);
-      // Also store login timestamp to help with token expiry
-      localStorage.setItem('token_timestamp', Date.now().toString());
+      // Also store user info
+      try {
+        const userResponse = await api.get('/api/auth/me');
+        localStorage.setItem('user', JSON.stringify(userResponse.data));
+      } catch (error) {
+        console.error('Failed to fetch user data after login');
+      }
     }
     
     return response.data;
@@ -46,45 +51,49 @@ export const auth = {
   },
 
   async getMe(): Promise<User> {
+    // First check if we have cached user data
+    const cachedUser = localStorage.getItem('user');
+    if (cachedUser) {
+      try {
+        const user = JSON.parse(cachedUser);
+        // Verify the token is still valid by making an API call
+        const response = await api.get('/api/auth/me');
+        // Update cached user data
+        localStorage.setItem('user', JSON.stringify(response.data));
+        return response.data;
+      } catch (error) {
+        // Token is invalid, clear storage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        throw error;
+      }
+    }
+    
+    // No cached user, fetch from API
     const response = await api.get('/api/auth/me');
+    localStorage.setItem('user', JSON.stringify(response.data));
     return response.data;
   },
 
   logout() {
     localStorage.removeItem('token');
-    localStorage.removeItem('token_timestamp');
+    localStorage.removeItem('user');
     window.location.href = '/login';
   },
 
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('token');
-    const timestamp = localStorage.getItem('token_timestamp');
-    
-    if (!token) return false;
-    
-    // Check if token is older than 30 days (optional)
-    if (timestamp) {
-      const tokenAge = Date.now() - parseInt(timestamp);
-      const thirtyDays = 30 * 24 * 60 * 60 * 1000;
-      if (tokenAge > thirtyDays) {
-        this.logout();
-        return false;
-      }
-    }
-    
-    return true;
+    return !!localStorage.getItem('token');
   },
 
-  async verifyToken(): Promise<boolean> {
-    if (!this.isAuthenticated()) return false;
-    
-    try {
-      await this.getMe();
-      return true;
-    } catch (error) {
-      // Token is invalid or expired
-      this.logout();
-      return false;
+  getCachedUser(): User | null {
+    const cachedUser = localStorage.getItem('user');
+    if (cachedUser) {
+      try {
+        return JSON.parse(cachedUser);
+      } catch {
+        return null;
+      }
     }
+    return null;
   },
 };
