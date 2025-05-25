@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-import openai
+from openai import OpenAI
 import json
 from app.database import get_db
 from app.schemas.ai import ChatMessage, ChatResponse, TaskSuggestion
@@ -12,9 +12,10 @@ from app.config import settings
 
 router = APIRouter()
 
-# Configure OpenAI
+# Initialize OpenAI client
+client = None
 if settings.openai_api_key:
-    openai.api_key = settings.openai_api_key
+    client = OpenAI(api_key=settings.openai_api_key)
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_with_assistant(
@@ -22,7 +23,7 @@ async def chat_with_assistant(
     current_user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if not settings.openai_api_key:
+    if not client:
         raise HTTPException(
             status_code=503,
             detail="OpenAI API key not configured. Please set OPENAI_API_KEY in your environment variables."
@@ -43,8 +44,8 @@ async def chat_with_assistant(
         Always be helpful, concise, and focused on actionable task management.
         """
         
-        # Create the chat completion
-        response = openai.ChatCompletion.create(
+        # Create the chat completion using the new client
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_prompt},
@@ -62,6 +63,7 @@ async def chat_with_assistant(
         )
         
     except Exception as e:
+        print(f"OpenAI API Error: {str(e)}")  # This will help with debugging
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/generate-tasks")
@@ -70,7 +72,7 @@ async def generate_tasks(
     current_user: UserModel = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    if not settings.openai_api_key:
+    if not client:
         raise HTTPException(
             status_code=503,
             detail="OpenAI API key not configured. Please set OPENAI_API_KEY in your environment variables."
@@ -80,42 +82,46 @@ async def generate_tasks(
         # Create a function calling prompt
         functions = [
             {
-                "name": "create_tasks",
-                "description": "Create a list of tasks based on user requirements",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "tasks": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "title": {"type": "string"},
-                                    "description": {"type": "string"},
-                                    "priority": {"type": "string", "enum": ["low", "medium", "high", "urgent"]},
-                                    "estimated_hours": {"type": "number"}
-                                },
-                                "required": ["title", "description", "priority"]
+                "type": "function",
+                "function": {
+                    "name": "create_tasks",
+                    "description": "Create a list of tasks based on user requirements",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "tasks": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "title": {"type": "string"},
+                                        "description": {"type": "string"},
+                                        "priority": {"type": "string", "enum": ["low", "medium", "high", "urgent"]},
+                                        "estimated_hours": {"type": "number"}
+                                    },
+                                    "required": ["title", "description", "priority"]
+                                }
                             }
-                        }
-                    },
-                    "required": ["tasks"]
+                        },
+                        "required": ["tasks"]
+                    }
                 }
             }
         ]
         
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo-0613",
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are a task planning assistant. Generate structured tasks based on user requirements."},
                 {"role": "user", "content": message.content}
             ],
-            functions=functions,
-            function_call={"name": "create_tasks"}
+            tools=functions,
+            tool_choice={"type": "function", "function": {"name": "create_tasks"}}
         )
         
         # Parse the function call response
-        function_args = json.loads(response.choices[0].message.function_call.arguments)
+        tool_call = response.choices[0].message.tool_calls[0]
+        function_args = json.loads(tool_call.function.arguments)
         suggested_tasks = function_args.get("tasks", [])
         
         # Create tasks in the database
@@ -140,4 +146,5 @@ async def generate_tasks(
         }
         
     except Exception as e:
+        print(f"OpenAI API Error: {str(e)}")  # This will help with debugging
         raise HTTPException(status_code=500, detail=str(e))
