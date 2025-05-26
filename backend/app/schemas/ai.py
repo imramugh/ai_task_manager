@@ -22,3 +22,12 @@ class TaskSuggestion(BaseModel):
 class ChatResponse(BaseModel):
     content: str
     suggestions: List[TaskSuggestion] = []
+
+# Add missing classes for ai_assistant.py
+class AIRequest(BaseModel):
+    message: str
+    context: Optional[dict] = None
+
+class AIResponse(BaseModel):
+    response: str
+    suggestions: List[TaskSuggestion] = []

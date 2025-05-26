@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createTask, updateTask } from '@/lib/tasks';
-import { getProjects, Project } from '@/lib/projects';
+import { projects, Project } from '@/lib/projects';
 import { Task } from '@/lib/types';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { toast } from 'react-hot-toast';
@@ -23,9 +23,9 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
   const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
-    priority: task?.priority || 'medium',
+    priority: task?.priority || 'medium' as 'low' | 'medium' | 'high' | 'urgent',
     due_date: task?.due_date ? task.due_date.split('T')[0] : '',
-    project_id: task?.project_id || '',
+    project_id: task?.project_id?.toString() || '',
   });
 
   // Issue #17: Client-side validation
@@ -57,7 +57,7 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
         ...formData,
         title: formData.title.trim(),
         description: formData.description?.trim() || undefined,
-        project_id: formData.project_id || undefined,
+        project_id: formData.project_id ? parseInt(formData.project_id) : undefined,
         due_date: formData.due_date || undefined,
       };
 
@@ -149,7 +149,7 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
           <select
             id="priority"
             value={formData.priority}
-            onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, priority: e.target.value as 'low' | 'medium' | 'high' | 'urgent' })}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           >
             <option value="low">Low</option>
@@ -213,3 +213,6 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
     </form>
   );
 }
+
+// Export as default for easier importing
+export default TaskForm;

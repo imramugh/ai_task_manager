@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { logout } from '@/lib/auth';
-import { CommandPalette } from '@/components/CommandPalette';
+import { auth } from '@/lib/auth';
+import CommandPalette from '@/components/CommandPalette';
 import { MobileNav } from '@/components/layout/MobileNav';
 import {
   HomeIcon,
@@ -60,8 +60,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/login');
+    auth.logout();
+    // auth.logout() already redirects to login, so no need for router.push
   };
 
   return (
@@ -161,9 +161,12 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
       {/* Command Palette */}
       <CommandPalette
-        isOpen={showCommandPalette}
-        onClose={() => setShowCommandPalette(false)}
+        open={showCommandPalette}
+        setOpen={setShowCommandPalette}
       />
     </div>
   );
 }
+
+// Export as default for easier importing
+export default DashboardLayout;

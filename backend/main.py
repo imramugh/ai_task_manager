@@ -18,6 +18,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.api import tasks, auth, ai_assistant, projects, tags, templates  # Issue #23: Add templates
 from app.database import engine, Base, get_db
 from app.config import settings
+# Import all models to ensure they are registered with SQLAlchemy
+from app.models import User, Task, Project, Tag, TaskTemplate
 
 # Load environment variables
 load_dotenv()

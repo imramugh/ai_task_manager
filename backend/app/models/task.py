@@ -23,6 +23,7 @@ class Project(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
+    user = relationship("User", back_populates="projects")
     tasks = relationship("Task", back_populates="project")
 
 class Tag(Base):
@@ -60,6 +61,7 @@ class Task(Base):
     completed_at = Column(DateTime(timezone=True))
     
     # Relationships
+    user = relationship("User", back_populates="tasks")
     project = relationship("Project", back_populates="tasks")
     tags = relationship("Tag", secondary=task_tags, back_populates="tasks")
     subtasks = relationship("Task", backref="parent_task", remote_side=[id])
